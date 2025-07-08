@@ -1,29 +1,26 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MenuAudioControls : MonoBehaviour
+public class SoundToggleButton : MonoBehaviour
 {
-    public Button musicToggleButton;
-    public Sprite musicOnIcon;
-    public Sprite musicOffIcon;
+    public Sprite soundOnIcon;
+    public Sprite soundOffIcon;
+    public Image buttonImage;
 
-    private void Start()
+    void Start()
     {
-        UpdateMusicIcon();
-
-        musicToggleButton.onClick.AddListener(() =>
-        {
-            MusicManager.Instance.ToggleMusic();
-            UpdateMusicIcon();
-        });
+        UpdateIcon();
     }
 
-    void UpdateMusicIcon()
+    public void ToggleSound()
     {
-        if (MusicManager.Instance.IsMuted())
-            musicToggleButton.image.sprite = musicOffIcon;
-        else
-            musicToggleButton.image.sprite = musicOnIcon;
+        AudioManager.Instance.ToggleMusic();
+        UpdateIcon();
+    }
+
+    void UpdateIcon()
+    {
+        buttonImage.sprite = AudioManager.Instance.isMusicOn ? soundOnIcon : soundOffIcon;
     }
 }
 

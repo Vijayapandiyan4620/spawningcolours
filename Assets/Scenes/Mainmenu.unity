@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PLAY
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -405,6 +405,7 @@ GameObject:
   - component: {fileID: 344925130}
   - component: {fileID: 344925129}
   - component: {fileID: 344925132}
+  - component: {fileID: 344925133}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -429,8 +430,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 183.25, y: -135.28}
-  m_SizeDelta: {x: 427, y: 426}
+  m_AnchoredPosition: {x: 128, y: -135.28}
+  m_SizeDelta: {x: 512, y: 512}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &344925129
 MonoBehaviour:
@@ -475,7 +476,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 344925130}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2048024502}
+        m_TargetAssemblyTypeName: MusicManager, Assembly-CSharp
+        m_MethodName: ToggleMusic
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &344925130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,7 +509,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7257413029054892881, guid: 86eaffd2f7993b541afd142d68e7e62f, type: 3}
+  m_Sprite: {fileID: 4894364501582888087, guid: 8f24c0e6b382064449166d7e8d164ae7, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -526,9 +539,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6366422f18af72740ab26fb4c10e79f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicToggleButton: {fileID: 344925129}
-  musicOnIcon: {fileID: 7257413029054892881, guid: 86eaffd2f7993b541afd142d68e7e62f, type: 3}
-  musicOffIcon: {fileID: -3164702865623758965, guid: a1f04af3b57ba0a44809685bab7b2e7d, type: 3}
+  soundOnIcon: {fileID: 0}
+  soundOffIcon: {fileID: 0}
+  buttonImage: {fileID: 0}
+--- !u!114 &344925133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 344925127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a90e67f987e252d49bad9ff8e44de1ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 0}
 --- !u!1 &462598561
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,6 +782,7 @@ GameObject:
   - component: {fileID: 1232541085}
   - component: {fileID: 1232541084}
   - component: {fileID: 1232541083}
+  - component: {fileID: 1232541086}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -772,7 +799,7 @@ RectTransform:
   m_GameObject: {fileID: 1232541081}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.614347, y: 2.614347, z: 2.614347}
+  m_LocalScale: {x: 0.7618232, y: 0.7618232, z: 0.7618232}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 131886163}
@@ -781,7 +808,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 3, y: -356}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 353, y: 165}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1232541083
 MonoBehaviour:
@@ -859,8 +886,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 5482183135789131960, guid: b8f393128cb86174b9999238898e4693, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -877,6 +904,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1232541081}
   m_CullTransparentMesh: 1
+--- !u!114 &1232541086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232541081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a90e67f987e252d49bad9ff8e44de1ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 0}
 --- !u!1 &1330555205
 GameObject:
   m_ObjectHideFlags: 0
@@ -890,6 +930,7 @@ GameObject:
   - component: {fileID: 1330555208}
   - component: {fileID: 1330555207}
   - component: {fileID: 1330555210}
+  - component: {fileID: 1330555211}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -912,11 +953,11 @@ RectTransform:
   - {fileID: 561300204}
   m_Father: {fileID: 2053029207}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1263, y: -135.28}
-  m_SizeDelta: {x: 427, y: 426}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -118, y: -135.28}
+  m_SizeDelta: {x: 512, y: 512}
+  m_Pivot: {x: 1, y: 1}
 --- !u!114 &1330555207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -981,7 +1022,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -4838138719237866635, guid: dcac5008cc9441044af21996e00b8600, type: 3}
+  m_Sprite: {fileID: 6297055232021531023, guid: b28c9c78172b49741b8af508a2b97ffb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1011,9 +1052,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6366422f18af72740ab26fb4c10e79f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicToggleButton: {fileID: 1330555207}
-  musicOnIcon: {fileID: -4838138719237866635, guid: dcac5008cc9441044af21996e00b8600, type: 3}
-  musicOffIcon: {fileID: 7240901738165958784, guid: 9a7f1c12a75dc7946850e7051a25d308, type: 3}
+  soundOnIcon: {fileID: 6297055232021531023, guid: b28c9c78172b49741b8af508a2b97ffb, type: 3}
+  soundOffIcon: {fileID: 1161608823702266113, guid: 77d2fdf69dcb3464c9757c6caa3d1237, type: 3}
+  buttonImage: {fileID: 1330555208}
+--- !u!114 &1330555211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330555205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a90e67f987e252d49bad9ff8e44de1ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 0}
 --- !u!1 &1837399084
 GameObject:
   m_ObjectHideFlags: 0
@@ -1068,7 +1122,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2048024503}
   - component: {fileID: 2048024502}
-  - component: {fileID: 2048024501}
   m_Layer: 0
   m_Name: MusicManager
   m_TagString: Untagged
@@ -1076,103 +1129,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!82 &2048024501
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2048024500}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: a506c015422c1354ba8763148c421f3a, type: 3}
-  m_Resource: {fileID: 8300000, guid: a506c015422c1354ba8763148c421f3a, type: 3}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 1
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &2048024502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1182,10 +1138,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2048024500}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cf26f6f60c9ea4b9a7409848a82474, type: 3}
+  m_Script: {fileID: 11500000, guid: 236ffd5165940ea4eb0e9c95246f5896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicSource: {fileID: 2048024501}
+  mainMenuMusic: {fileID: 0}
+  gameMusic: {fileID: 0}
+  isMusicOn: 1
 --- !u!4 &2048024503
 Transform:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(SpriteRenderer), typeof(Rigidbody2D))]
+[RequireComponent(typeof(SpriteRenderer), typeof(Rigidbody2D), typeof(AudioSource))]
 public class PlayerColor : MonoBehaviour
 {
     public float moveSpeed = 5f;
@@ -8,21 +8,27 @@ public class PlayerColor : MonoBehaviour
 
     private SpriteRenderer sr;
     private Rigidbody2D rb;
+    private AudioSource audioSource;
+
     private float moveInput;
     private float screenLimitX;
+    private int matchCount = 0;
 
-    private int matchCount = 0; // Tracks same-color collisions
+    [Header("Sound Effects")]
+    public AudioClip matchSound;
+    public AudioClip deathSound;
 
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        audioSource = GetComponent<AudioSource>();
 
-        // ✅ Assign a random starting color from the easy palette
+        // Assign a random starting color
         currentColor = ColorObject.easyColors[Random.Range(0, ColorObject.easyColors.Length)];
         sr.color = currentColor;
 
-        // Calculate horizontal screen bounds
+        // Screen bounds calculation
         float halfPlayerWidth = sr.bounds.extents.x;
         float screenHalfWidth = Camera.main.orthographicSize * Screen.width / Screen.height;
         screenLimitX = screenHalfWidth - halfPlayerWidth;
@@ -32,7 +38,7 @@ public class PlayerColor : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        // Clamp player position within screen
+        // Clamp position inside screen
         Vector3 pos = transform.position;
         pos.x = Mathf.Clamp(pos.x, -screenLimitX, screenLimitX);
         transform.position = pos;
@@ -61,11 +67,14 @@ public class PlayerColor : MonoBehaviour
             Destroy(collision.gameObject);
             ScoreManager.Instance?.AddScore(1);
 
+            // ✅ Play match sound
+            if (matchSound != null && audioSource != null)
+                audioSource.PlayOneShot(matchSound);
+
             matchCount++;
 
             if (matchCount >= 5)
             {
-                // Change to new random color different from current
                 Color newColor;
                 do
                 {
@@ -78,8 +87,13 @@ public class PlayerColor : MonoBehaviour
         }
         else
         {
+            // ✅ Play death sound at position
+            if (deathSound != null)
+                AudioSource.PlayClipAtPoint(deathSound, transform.position);
+
             Debug.Log("Wrong color! Player destroyed.");
             Destroy(gameObject);
+            GameManager.Instance?.GameOver();
         }
     }
 }

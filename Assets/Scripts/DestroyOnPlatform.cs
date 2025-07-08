@@ -2,21 +2,72 @@ using UnityEngine;
 
 public class DestroyOnPlatform : MonoBehaviour
 {
+    private int matchOnPlatformCount = 0;
+    private Color lastCheckedPlayerColor;
+
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("FallingObject"))
         {
-            Destroy(collision.gameObject);
+            HandleObjectCollision(collision.gameObject);
         }
     }
 
-    // Use this if "Is Trigger" is enabled
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("FallingObject"))
         {
-            Destroy(other.gameObject);
+            HandleObjectCollision(other.gameObject);
         }
     }
+
+    void HandleObjectCollision(GameObject obj)
+    {
+        ColorObject colorObj = obj.GetComponent<ColorObject>();
+        if (colorObj == null)
+        {
+            Destroy(obj);
+            return;
+        }
+
+        // Find player
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        PlayerColor playerColorScript = player.GetComponent<PlayerColor>();
+        if (playerColorScript == null) return;
+
+        Color currentPlayerColor = playerColorScript.currentColor;
+
+        // ✅ Reset count if player's color changed
+        if (lastCheckedPlayerColor != currentPlayerColor)
+        {
+            matchOnPlatformCount = 0;
+            lastCheckedPlayerColor = currentPlayerColor;
+            Debug.Log("Player color changed → Match count reset.");
+        }
+
+        // ✅ Compare color
+        if (colorObj.myColor == currentPlayerColor)
+        {
+            matchOnPlatformCount++;
+            Debug.Log("Matched color on platform: " + matchOnPlatformCount);
+
+            if (matchOnPlatformCount >= 3)
+            {
+                Debug.Log("❌ Player destroyed after 3 same-color matches on platform.");
+                Destroy(player);
+            
+                GameManager.Instance?.GameOver(); // Show Game Over panel
+
+
+            }
+        }
+
+        // Always destroy falling object
+        Destroy(obj);
+    }
 }
+
+
 
