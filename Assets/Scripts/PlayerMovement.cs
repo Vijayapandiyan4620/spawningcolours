@@ -3,16 +3,18 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer), typeof(Rigidbody2D), typeof(AudioSource))]
 public class PlayerColor : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float moveSpeed = 10f;
     public Color currentColor;
 
     private SpriteRenderer sr;
     private Rigidbody2D rb;
     private AudioSource audioSource;
 
-    private float moveInput;
     private float screenLimitX;
     private int matchCount = 0;
+
+    private Vector3 dragTargetPos;
+    private bool isDragging = false;
 
     [Header("Sound Effects")]
     public AudioClip matchSound;
@@ -36,17 +38,55 @@ public class PlayerColor : MonoBehaviour
 
     void Update()
     {
-        moveInput = Input.GetAxisRaw("Horizontal");
+#if UNITY_STANDALONE || UNITY_EDITOR
+        HandleMouseDrag();
+#elif UNITY_ANDROID || UNITY_IOS
+        HandleTouchDrag();
+#endif
 
-        // Clamp position inside screen
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, -screenLimitX, screenLimitX);
-        transform.position = pos;
+        // Clamp position inside screen bounds
+        Vector3 clamped = transform.position;
+        clamped.x = Mathf.Clamp(clamped.x, -screenLimitX, screenLimitX);
+        transform.position = clamped;
     }
 
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        if (isDragging)
+        {
+            Vector2 direction = (dragTargetPos - transform.position);
+            rb.linearVelocity = new Vector2(direction.x * moveSpeed, rb.linearVelocity.y);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        }
+    }
+
+    void HandleTouchDrag()
+    {
+        isDragging = false;
+
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            Vector3 touchWorld = Camera.main.ScreenToWorldPoint(touch.position);
+            dragTargetPos = new Vector3(touchWorld.x, transform.position.y, 0);
+            isDragging = true;
+        }
+    }
+
+    void HandleMouseDrag()
+    {
+        isDragging = false;
+
+        if (Input.GetMouseButton(0))
+        {
+            Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            dragTargetPos = new Vector3(mouseWorld.x, transform.position.y, 0);
+            isDragging = true;
+        }
     }
 
     public void SetPlayerColor(Color newColor)
@@ -67,7 +107,6 @@ public class PlayerColor : MonoBehaviour
             Destroy(collision.gameObject);
             ScoreManager.Instance?.AddScore(1);
 
-            // ✅ Play match sound
             if (matchSound != null && audioSource != null)
                 audioSource.PlayOneShot(matchSound);
 
@@ -87,7 +126,6 @@ public class PlayerColor : MonoBehaviour
         }
         else
         {
-            // ✅ Play death sound at position
             if (deathSound != null)
                 AudioSource.PlayClipAtPoint(deathSound, transform.position);
 
@@ -97,6 +135,9 @@ public class PlayerColor : MonoBehaviour
         }
     }
 }
+
+
+
 
 
 

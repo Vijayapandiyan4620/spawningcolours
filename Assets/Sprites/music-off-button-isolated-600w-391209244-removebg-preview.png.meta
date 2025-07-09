@@ -260,7 +260,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      music-off-button-isolated-600w-391209244-removebg-preview_0: -3164702865623758965
+      music-off-button-isolated-600w-391209244-removebg-preview_1: 4445701677519694005
+      music-off-button-isolated-600w-391209244-removebg-preview_2: 8477950880786332420
+      music-off-button-isolated-600w-391209244-removebg-preview_3: -8493570467124329366
+      music-off-button-isolated-600w-391209244-removebg-preview_4: -5101309152256853645
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
