@@ -1,53 +1,59 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-public class DynamicLaneLines : MonoBehaviour
+public class LaneLineScroller : MonoBehaviour
 {
-    public float segmentHeight = 0.5f;
-    public float segmentSpacing = 0.3f;
-    public float startY = 6f;
-    public float endY = -6f;
-    public float lineWidth = 0.5f;
-    public Material lineMaterial;
+    public GameObject linePrefab;
+    public int linesPerLane = 10;
+    public float lineSpacing = 2f;
+
+    private List<Transform> lines = new List<Transform>();
+    private Camera cam;
+    private float screenTop;
+    private float screenBottom;
+    private float[] lanePositions;
 
     void Start()
     {
-        float screenHalfWidth = Camera.main.orthographicSize * Screen.width / Screen.height;
-        float screenWidth = screenHalfWidth * 2f;
+        cam = Camera.main;
+        screenTop = cam.orthographicSize;
+        screenBottom = -screenTop;
+
+        float screenWidth = screenTop * 2f * cam.aspect;
         float laneWidth = screenWidth / 3f;
 
-        // Dividers between 3 lanes: 2 lines
-        float[] dividerX = new float[2]
-        {
-            -screenHalfWidth + laneWidth * 1f,
-            -screenHalfWidth + laneWidth * 2f
-        };
+        lanePositions = new float[2];
+        lanePositions[0] = -screenWidth / 2f + laneWidth;
+        lanePositions[1] = -screenWidth / 2f + laneWidth * 2;
 
-        foreach (float x in dividerX)
+        foreach (float x in lanePositions)
         {
-            float y = startY;
-            while (y > endY)
+            for (int i = 0; i < linesPerLane; i++)
             {
-                CreateDashSegment(x, y);
-                y -= (segmentHeight + segmentSpacing);
+                Vector3 pos = new Vector3(x, screenBottom + i * lineSpacing, 0);
+                GameObject line = Instantiate(linePrefab, pos, Quaternion.identity, transform);
+                lines.Add(line.transform);
             }
         }
     }
 
-    void CreateDashSegment(float x, float centerY)
+    void Update()
     {
-        GameObject dash = new GameObject("Dash");
-        dash.transform.parent = this.transform;
+        float scrollSpeed = ObjectSpawner.ScrollSpeed;
 
-        LineRenderer lr = dash.AddComponent<LineRenderer>();
-        lr.positionCount = 2;
-        lr.SetPosition(0, new Vector3(x, centerY - segmentHeight / 2f, 0));
-        lr.SetPosition(1, new Vector3(x, centerY + segmentHeight / 2f, 0));
-        lr.startWidth = lr.endWidth = 0.07f;
-        lr.material = lineMaterial != null ? lineMaterial : new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = lr.endColor = Color.white;
-        lr.sortingOrder = 2;
+        foreach (Transform line in lines)
+        {
+            line.position += Vector3.down * scrollSpeed * Time.deltaTime;
+
+            if (line.position.y < screenBottom - 1f)
+            {
+                line.position += new Vector3(0, lineSpacing * linesPerLane, 0);
+            }
+        }
     }
 }
+
+
 
 
 

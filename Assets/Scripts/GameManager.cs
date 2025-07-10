@@ -1,8 +1,18 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
+
 
 public class GameManager : MonoBehaviour
 {
+        private IEnumerator ShowGameOverPanelWithDelay(float delay)
+{
+    yield return new WaitForSeconds(delay);
+
+    if (gameOverPanel != null)
+        gameOverPanel.SetActive(true);
+}
+
     public static GameManager Instance;
 
     [Header("Game Over UI")]
@@ -12,6 +22,7 @@ public class GameManager : MonoBehaviour
     public GameObject pausePanel;
 
     private bool isPaused = false;
+
 
     void Awake()
     {
@@ -27,13 +38,14 @@ public class GameManager : MonoBehaviour
             pausePanel.SetActive(false);
     }
 
-    public void GameOver()
-    {
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(true);
+    public bool isGameOver { get; private set; } = false;
 
-        Time.timeScale = 0f;
-    }
+  public void GameOver()
+{
+    isGameOver = true;
+    StartCoroutine(ShowGameOverPanelWithDelay(1.5f)); // ⏳ Delay in seconds
+}
+
 
     public void PauseGame()
     {

@@ -75,18 +75,22 @@ using System.Collections;
 
 public class ObjectSpawner : MonoBehaviour
 {
+    public static float ScrollSpeed = 4f; // 📌 Shared scroll speed for lane lines + objects
+
     public GameObject objectToSpawn;
     public float spawnInterval = 1f;
     public float ySpawnPosition = 6f;
-    public float spawnSpeedIncrement = 0.1f;  // How much faster each level gets
+    public float spawnSpeedIncrement = 0.1f;
+    public float startDelay = 1.5f;
 
     private float[] laneXPositions;
     private int nextScoreThreshold = 7;
+    private int spawnedCount = 0;
 
     void Start()
     {
         SetupLanePositions();
-        StartCoroutine(SpawnRoutine());
+        StartCoroutine(WaitForPlayerColorAndStartSpawning());
     }
 
     void SetupLanePositions()
@@ -102,31 +106,102 @@ public class ObjectSpawner : MonoBehaviour
         }
     }
 
+    IEnumerator WaitForPlayerColorAndStartSpawning()
+    {
+        GameObject player = null;
+        PlayerColor playerColor = null;
+
+        while (playerColor == null || !playerColor.isColorSet)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+
+            if (player != null)
+                playerColor = player.GetComponent<PlayerColor>();
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(startDelay);
+        StartCoroutine(SpawnRoutine());
+    }
+
     IEnumerator SpawnRoutine()
     {
         while (true)
         {
-            SpawnObjectInLane();
+            if (GameManager.Instance != null && GameManager.Instance.isGameOver)
+                yield break;
+
+            SpawnObjects();
 
             yield return new WaitForSeconds(spawnInterval);
 
-            // Check player score and adjust spawn speed
             if (ScoreManager.Instance != null && ScoreManager.Instance.score >= nextScoreThreshold)
             {
-                spawnInterval = Mathf.Max(0.2f, spawnInterval - spawnSpeedIncrement); // Limit minimum interval
-                nextScoreThreshold += 7; // Increase threshold for next speedup
-                Debug.Log("Increased spawn speed. New interval: " + spawnInterval.ToString("F2"));
+                spawnInterval = Mathf.Max(0.2f, spawnInterval - spawnSpeedIncrement);
+                ScrollSpeed += 0.5f; // 🔼 Increase speed for both objects + lane lines
+                ScrollSpeed = Mathf.Min(12f, ScrollSpeed); // Clamp max
+                nextScoreThreshold += 7;
             }
         }
     }
 
-    void SpawnObjectInLane()
+    void SpawnObjects()
     {
-        int laneIndex = Random.Range(0, 3);
-        float x = laneXPositions[laneIndex];
-        Instantiate(objectToSpawn, new Vector3(x, ySpawnPosition, 0), Quaternion.identity);
+        if (spawnedCount == 0)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            PlayerColor playerColor = player?.GetComponent<PlayerColor>();
+            Color targetColor = playerColor != null ? playerColor.currentColor : Color.white;
+
+            int playerColorLaneIndex = Random.Range(0, laneXPositions.Length);
+
+            for (int i = 0; i < laneXPositions.Length; i++)
+            {
+                float x = laneXPositions[i];
+                GameObject obj = Instantiate(objectToSpawn, new Vector3(x, ySpawnPosition, 0), Quaternion.identity);
+                ColorObject objColor = obj.GetComponent<ColorObject>();
+
+                if (objColor != null)
+                {
+                    if (i == playerColorLaneIndex)
+                        objColor.SetColor(targetColor);
+                    else
+                    {
+                        Color newColor;
+                        do
+                        {
+                            newColor = ColorObject.easyColors[Random.Range(0, ColorObject.easyColors.Length)];
+                        }
+                        while (newColor == targetColor);
+
+                        objColor.SetColor(newColor);
+                    }
+                }
+            }
+
+            spawnedCount++;
+        }
+        else
+        {
+            int laneIndex = Random.Range(0, 3);
+            float x = laneXPositions[laneIndex];
+            GameObject obj = Instantiate(objectToSpawn, new Vector3(x, ySpawnPosition, 0), Quaternion.identity);
+
+            ColorObject objColor = obj.GetComponent<ColorObject>();
+            if (objColor != null)
+                objColor.AssignRandomColor();
+
+            spawnedCount++;
+        }
     }
 }
+
+
+
+
+
+
 
 
 

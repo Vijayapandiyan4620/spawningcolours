@@ -4,27 +4,20 @@ using UnityEngine;
 public class ColorObject : MonoBehaviour
 {
     public Color myColor;
-    private SpriteRenderer sr;
+    public static Color[] easyColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.magenta };
 
-    // Public static color list accessible by PlayerColor
-    public static readonly Color[] easyColors = new Color[]
+    public void SetColor(Color color)
     {
-        Color.red,
-        Color.green,
-        Color.blue,
-        Color.yellow,
-        new Color(1f, 0.5f, 0f), // orange
-        Color.magenta,
-        Color.cyan
-    };
+        myColor = color;
+        GetComponent<SpriteRenderer>().color = color;
+    }
 
-    void Start()
+    public void AssignRandomColor()
     {
-        sr = GetComponent<SpriteRenderer>();
-        myColor = easyColors[Random.Range(0, easyColors.Length)];
-        sr.color = myColor;
+        SetColor(easyColors[Random.Range(0, easyColors.Length)]);
     }
 }
+
 
 
 

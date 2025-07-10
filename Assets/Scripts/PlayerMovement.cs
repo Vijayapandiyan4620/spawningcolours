@@ -1,10 +1,13 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(SpriteRenderer), typeof(Rigidbody2D), typeof(AudioSource))]
 public class PlayerColor : MonoBehaviour
 {
     public float moveSpeed = 10f;
     public Color currentColor;
+
+    [HideInInspector] public bool isColorSet = false;
 
     private SpriteRenderer sr;
     private Rigidbody2D rb;
@@ -20,20 +23,28 @@ public class PlayerColor : MonoBehaviour
     public AudioClip matchSound;
     public AudioClip deathSound;
 
+    [Header("Particle Effects (Prefabs)")]
+    public GameObject matchParticlePrefab;
+    public GameObject mismatchParticlePrefab;
+
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
 
-        // Assign a random starting color
-        currentColor = ColorObject.easyColors[Random.Range(0, ColorObject.easyColors.Length)];
-        sr.color = currentColor;
+        AssignInitialColor();
 
-        // Screen bounds calculation
         float halfPlayerWidth = sr.bounds.extents.x;
         float screenHalfWidth = Camera.main.orthographicSize * Screen.width / Screen.height;
         screenLimitX = screenHalfWidth - halfPlayerWidth;
+    }
+
+    void AssignInitialColor()
+    {
+        currentColor = ColorObject.easyColors[Random.Range(0, ColorObject.easyColors.Length)];
+        sr.color = currentColor;
+        isColorSet = true;
     }
 
     void Update()
@@ -44,7 +55,6 @@ public class PlayerColor : MonoBehaviour
         HandleTouchDrag();
 #endif
 
-        // Clamp position inside screen bounds
         Vector3 clamped = transform.position;
         clamped.x = Mathf.Clamp(clamped.x, -screenLimitX, screenLimitX);
         transform.position = clamped;
@@ -70,7 +80,6 @@ public class PlayerColor : MonoBehaviour
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-
             Vector3 touchWorld = Camera.main.ScreenToWorldPoint(touch.position);
             dragTargetPos = new Vector3(touchWorld.x, transform.position.y, 0);
             isDragging = true;
@@ -104,6 +113,18 @@ public class PlayerColor : MonoBehaviour
 
         if (currentColor == objColor.myColor)
         {
+            // ✅ Spawn and color match particle
+            if (matchParticlePrefab != null)
+            {
+                GameObject effect = Instantiate(matchParticlePrefab, transform.position, Quaternion.identity);
+                ParticleSystem ps = effect.GetComponentInChildren<ParticleSystem>();
+                if (ps != null)
+                {
+                    var main = ps.main;
+                    main.startColor = new ParticleSystem.MinMaxGradient(currentColor);
+                }
+            }
+
             Destroy(collision.gameObject);
             ScoreManager.Instance?.AddScore(1);
 
@@ -126,6 +147,18 @@ public class PlayerColor : MonoBehaviour
         }
         else
         {
+            // ❌ Spawn and color mismatch particle
+            if (mismatchParticlePrefab != null)
+            {
+                GameObject effect = Instantiate(mismatchParticlePrefab, transform.position, Quaternion.identity);
+                ParticleSystem ps = effect.GetComponentInChildren<ParticleSystem>();
+                if (ps != null)
+                {
+                    var main = ps.main;
+                    main.startColor = new ParticleSystem.MinMaxGradient(Color.red);
+                }
+            }
+
             if (deathSound != null)
                 AudioSource.PlayClipAtPoint(deathSound, transform.position);
 
@@ -135,6 +168,10 @@ public class PlayerColor : MonoBehaviour
         }
     }
 }
+
+
+
+
 
 
 
