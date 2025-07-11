@@ -1,43 +1,109 @@
 using UnityEngine;
-using System.Collections;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(SpriteRenderer), typeof(Rigidbody2D), typeof(AudioSource))]
 public class PlayerColor : MonoBehaviour
 {
-    public float moveSpeed = 10f;
     public Color currentColor;
-
     [HideInInspector] public bool isColorSet = false;
+
+    public AudioClip matchSound;
+    public AudioClip deathSound;
+
+    public GameObject matchParticlePrefab;
+    public GameObject mismatchParticlePrefab;
 
     private SpriteRenderer sr;
     private Rigidbody2D rb;
     private AudioSource audioSource;
+    private Camera mainCamera;
 
     private float screenLimitX;
     private int matchCount = 0;
 
-    private Vector3 dragTargetPos;
     private bool isDragging = false;
+    private float dragThreshold = 0.1f;
+    private float initialTouchX;
 
-    [Header("Sound Effects")]
-    public AudioClip matchSound;
-    public AudioClip deathSound;
-
-    [Header("Particle Effects (Prefabs)")]
-    public GameObject matchParticlePrefab;
-    public GameObject mismatchParticlePrefab;
+    private float smoothSpeed = 10f; // ✅ Controls how fast the player follows the finger
+    private float targetX;
 
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
+        mainCamera = Camera.main;
 
         AssignInitialColor();
 
         float halfPlayerWidth = sr.bounds.extents.x;
-        float screenHalfWidth = Camera.main.orthographicSize * Screen.width / Screen.height;
+        float screenHalfWidth = mainCamera.orthographicSize * Screen.width / Screen.height;
         screenLimitX = screenHalfWidth - halfPlayerWidth;
+
+        targetX = transform.position.x;
+    }
+
+    void Update()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        HandleTouchInput();
+#elif UNITY_EDITOR || UNITY_STANDALONE
+        HandleMouseInput();
+#endif
+
+        // ✅ Smooth movement toward the targetX
+        Vector3 newPos = transform.position;
+        newPos.x = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * smoothSpeed);
+        transform.position = newPos;
+    }
+
+    void HandleTouchInput()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                return;
+
+            Vector3 worldPos = mainCamera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0));
+
+            switch (touch.phase)
+            {
+                case TouchPhase.Began:
+                    isDragging = false;
+                    initialTouchX = worldPos.x;
+                    break;
+
+                case TouchPhase.Moved:
+                    if (!isDragging && Mathf.Abs(worldPos.x - initialTouchX) > dragThreshold)
+                        isDragging = true;
+
+                    if (isDragging)
+                    {
+                        targetX = Mathf.Clamp(worldPos.x, -screenLimitX, screenLimitX);
+                    }
+                    break;
+
+                case TouchPhase.Ended:
+                case TouchPhase.Canceled:
+                    isDragging = false;
+                    break;
+            }
+        }
+    }
+
+    void HandleMouseInput()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return;
+
+            Vector3 worldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            targetX = Mathf.Clamp(worldPos.x, -screenLimitX, screenLimitX);
+        }
     }
 
     void AssignInitialColor()
@@ -45,57 +111,6 @@ public class PlayerColor : MonoBehaviour
         currentColor = ColorObject.easyColors[Random.Range(0, ColorObject.easyColors.Length)];
         sr.color = currentColor;
         isColorSet = true;
-    }
-
-    void Update()
-    {
-#if UNITY_STANDALONE || UNITY_EDITOR
-        HandleMouseDrag();
-#elif UNITY_ANDROID || UNITY_IOS
-        HandleTouchDrag();
-#endif
-
-        Vector3 clamped = transform.position;
-        clamped.x = Mathf.Clamp(clamped.x, -screenLimitX, screenLimitX);
-        transform.position = clamped;
-    }
-
-    void FixedUpdate()
-    {
-        if (isDragging)
-        {
-            Vector2 direction = (dragTargetPos - transform.position);
-            rb.linearVelocity = new Vector2(direction.x * moveSpeed, rb.linearVelocity.y);
-        }
-        else
-        {
-            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-        }
-    }
-
-    void HandleTouchDrag()
-    {
-        isDragging = false;
-
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            Vector3 touchWorld = Camera.main.ScreenToWorldPoint(touch.position);
-            dragTargetPos = new Vector3(touchWorld.x, transform.position.y, 0);
-            isDragging = true;
-        }
-    }
-
-    void HandleMouseDrag()
-    {
-        isDragging = false;
-
-        if (Input.GetMouseButton(0))
-        {
-            Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            dragTargetPos = new Vector3(mouseWorld.x, transform.position.y, 0);
-            isDragging = true;
-        }
     }
 
     public void SetPlayerColor(Color newColor)
@@ -113,7 +128,6 @@ public class PlayerColor : MonoBehaviour
 
         if (currentColor == objColor.myColor)
         {
-            // ✅ Spawn and color match particle
             if (matchParticlePrefab != null)
             {
                 GameObject effect = Instantiate(matchParticlePrefab, transform.position, Quaternion.identity);
@@ -128,7 +142,7 @@ public class PlayerColor : MonoBehaviour
             Destroy(collision.gameObject);
             ScoreManager.Instance?.AddScore(1);
 
-            if (matchSound != null && audioSource != null)
+            if (matchSound != null)
                 audioSource.PlayOneShot(matchSound);
 
             matchCount++;
@@ -147,7 +161,6 @@ public class PlayerColor : MonoBehaviour
         }
         else
         {
-            // ❌ Spawn and color mismatch particle
             if (mismatchParticlePrefab != null)
             {
                 GameObject effect = Instantiate(mismatchParticlePrefab, transform.position, Quaternion.identity);
@@ -168,9 +181,6 @@ public class PlayerColor : MonoBehaviour
         }
     }
 }
-
-
-
 
 
 

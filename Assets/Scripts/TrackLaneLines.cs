@@ -41,6 +41,8 @@ public class LaneLineScroller : MonoBehaviour
     {
         float scrollSpeed = ObjectSpawner.ScrollSpeed;
 
+        Debug.Log("=======>"+scrollSpeed);
+
         foreach (Transform line in lines)
         {
             line.position += Vector3.down * scrollSpeed * Time.deltaTime;

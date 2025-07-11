@@ -23,21 +23,30 @@ public class DestroyOnPlatform : MonoBehaviour
 
     void HandleObjectCollision(GameObject obj)
     {
+        // Destroy object immediately if player is null
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            Destroy(obj);
+            Debug.Log("Player is null → Destroying object.");
+            return;
+        }
+
+        PlayerColor playerColorScript = player.GetComponent<PlayerColor>();
+        if (playerColorScript == null)
+        {
+            Destroy(obj);
+            return;
+        }
+
+        Color currentPlayerColor = playerColorScript.currentColor;
+
         ColorObject colorObj = obj.GetComponent<ColorObject>();
         if (colorObj == null)
         {
             Destroy(obj);
             return;
         }
-
-        // Find player
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null) return;
-
-        PlayerColor playerColorScript = player.GetComponent<PlayerColor>();
-        if (playerColorScript == null) return;
-
-        Color currentPlayerColor = playerColorScript.currentColor;
 
         // ✅ Reset count if player's color changed
         if (lastCheckedPlayerColor != currentPlayerColor)
@@ -57,17 +66,16 @@ public class DestroyOnPlatform : MonoBehaviour
             {
                 Debug.Log("❌ Player destroyed after 3 same-color matches on platform.");
                 Destroy(player);
-            
+
                 GameManager.Instance?.GameOver(); // Show Game Over panel
-
-
             }
         }
 
-        // Always destroy falling object
+        // Always destroy the falling object
         Destroy(obj);
     }
 }
+
 
 
 

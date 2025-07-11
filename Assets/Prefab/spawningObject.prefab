@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 2280972189891715008}
   - component: {fileID: -7066126506534877342}
   - component: {fileID: 2493122087993275484}
-  - component: {fileID: 5834397784193603268}
+  - component: {fileID: 1081124261522228836}
   m_Layer: 0
   m_Name: spawningObject
   m_TagString: FallingObject
@@ -118,7 +118,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.0052503, y: 0.3455, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: -1.7833335}
+  m_LocalScale: {x: 0.08, y: 0.08, z: 0.08}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3748233240424893254}
@@ -194,7 +194,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 0.6
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -265,7 +265,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 9.768181, y: 21.11169}
   m_EdgeRadius: 0
---- !u!114 &5834397784193603268
+--- !u!114 &1081124261522228836
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
