@@ -75,7 +75,7 @@ using System.Collections;
 
 public class ObjectSpawner : MonoBehaviour
 {
-    public static float ScrollSpeed = 4f; // 📌 Shared scroll speed for lane lines + objects
+    public static float ScrollSpeed = 7f; // 📌 Shared scroll speed for lane lines + objects
 
     public GameObject objectToSpawn;
     public float spawnInterval = 1f;
