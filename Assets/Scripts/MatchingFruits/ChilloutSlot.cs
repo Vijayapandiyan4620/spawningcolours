@@ -19,7 +19,7 @@ public class ChilloutSlot : MonoBehaviour, IDropHandler
                 FruitGameManager.Instance.HandleCorrectMatch(matchedSprite, item.itemId);
 
                 // ✅ Destroy the dragged item
-                Destroy(item.gameObject);
+                 FruitGameManager.Instance.MarkAsMatched(item.itemId);
             }
             else
             {

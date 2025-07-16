@@ -4,16 +4,17 @@ using UnityEngine.EventSystems;
 
 public class DraggableFruit : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    [Header("Fruit Info")]
     public string itemId;
+
+    [Header("Particle Effect")]
+    public GameObject particleEffectPrefab; // Assign your particle prefab in inspector
+    private GameObject activeParticle;
 
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
     private Transform originalParent;
     private Vector2 originalPosition;
-    public GameObject dragOutsideEffectPrefab;
-private GameObject currentEffectInstance;
-
-
 
     void Awake()
     {
@@ -21,16 +22,41 @@ private GameObject currentEffectInstance;
         canvasGroup = GetComponent<CanvasGroup>();
     }
 
+    void Start()
+    {
+        // Automatically spawn particle on fruit creation
+        SpawnParticleEffect();
+    }
+
+    public void SpawnParticleEffect()
+    {
+        if (particleEffectPrefab != null && activeParticle == null)
+        {
+            // Spawn the particle as a child of this fruit
+            activeParticle = Instantiate(particleEffectPrefab, transform);
+
+            // Make sure it's drawn behind the fruit image
+            activeParticle.transform.SetSiblingIndex(0);
+
+            // Position and scale
+            activeParticle.transform.localPosition = Vector3.zero;
+            activeParticle.transform.localScale = Vector3.one * 1.5f; // adjust scale as needed
+        }
+    }
+
+    public void StopParticleEffect()
+    {
+        if (activeParticle != null)
+        {
+            Destroy(activeParticle);
+        }
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Store original position and parent in case drop is invalid
         originalParent = transform.parent;
         originalPosition = rectTransform.anchoredPosition;
-
-        // Temporarily disable raycasts so target can receive drop
         canvasGroup.blocksRaycasts = false;
-
-        // Bring to front
         transform.SetParent(transform.root);
     }
 
@@ -44,18 +70,16 @@ private GameObject currentEffectInstance;
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Re-enable raycasts
         canvasGroup.blocksRaycasts = true;
-
-        // Restore parent
         transform.SetParent(originalParent);
 
-        // If not dropped on a valid target, snap back to original position
         if (eventData.pointerEnter == null || eventData.pointerEnter.GetComponent<ChilloutSlot>() == null)
         {
             rectTransform.anchoredPosition = originalPosition;
         }
     }
 }
+
+
 
 

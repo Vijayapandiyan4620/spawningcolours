@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -6,7 +7,6 @@ using TMPro;
 public class FruitGameManager : MonoBehaviour
 {
     public static FruitGameManager Instance;
-
 
     [Header("Chillout Target")]
     public Image chilloutSlot;
@@ -29,23 +29,34 @@ public class FruitGameManager : MonoBehaviour
     public float panelShowDelay = 1.5f;
     public float panelVisibleTime = 2f;
 
+    [Header("Match Info Particle")]
+public GameObject matchInfoParticlePrefab; // Assign in Inspector
+private GameObject activeMatchParticle;    // Runtime instance
+
+
     [Header("Celebration Effects")]
     public GameObject matchEffectPrefab;
     public Transform effectSpawnPoint;
     public AudioSource audioSource;
     public AudioClip matchSound;
 
-    // ⭐ NEW: Extra particle effect
     [Header("Extra Celebration Effect")]
-    public GameObject extraMatchEffectPrefab;       // Assign in Inspector
-    public Transform extraEffectSpawnPoint;        // Assign in Inspector
+    public GameObject extraMatchEffectPrefab;
+    public Transform extraEffectSpawnPoint;
 
     [Header("Game Over")]
     public GameObject gameOverPanel;
     public float gameOverVisibleTime = 2f;
 
+   [Header("Matched Colors")]
+public Color matchedBackgroundColor = new Color(0.3255f, 0.3608f, 0.0941f, 1f); // #535C18
+public Color normalBackgroundColor = Color.white;
+
     private int currentChilloutIndex = 0;
     private int score = 0;
+
+    // Track matched IDs
+    private HashSet<string> matchedIds = new HashSet<string>();
 
     void Awake()
     {
@@ -54,6 +65,10 @@ public class FruitGameManager : MonoBehaviour
 
     void Start()
     {
+        // Optional shuffle
+        ShuffleSpritesAndIds(ref itemSprites, ref itemIds);
+        ShuffleSpritesAndIds(ref chilloutSprites, ref chilloutIds);
+
         SpawnDraggableItems();
         LoadChillout(0);
 
@@ -61,13 +76,41 @@ public class FruitGameManager : MonoBehaviour
         if (matchInfoPanel) matchInfoPanel.SetActive(false);
     }
 
+    // 🔀 Shuffle helper
+    void ShuffleSpritesAndIds(ref Sprite[] sprites, ref string[] ids)
+    {
+        for (int i = sprites.Length - 1; i > 0; i--)
+        {
+            int rand = Random.Range(0, i + 1);
+            (sprites[i], sprites[rand]) = (sprites[rand], sprites[i]);
+            (ids[i], ids[rand]) = (ids[rand], ids[i]);
+        }
+    }
+
     void SpawnDraggableItems()
     {
+        foreach (Transform child in contentPanel)
+        {
+            Destroy(child.gameObject);
+        }
+
         for (int i = 0; i < itemSprites.Length; i++)
         {
             GameObject obj = Instantiate(draggablePrefab, contentPanel);
-            obj.GetComponent<Image>().sprite = itemSprites[i];
-            obj.GetComponent<DraggableFruit>().itemId = itemIds[i];
+            Image img = obj.GetComponent<Image>();
+            img.sprite = itemSprites[i];
+
+            DraggableFruit drag = obj.GetComponent<DraggableFruit>();
+            drag.itemId = itemIds[i];
+
+            // OPTIONAL: if you want each fruit to have a particle prefab
+              drag.SpawnParticleEffect();
+
+            // set color if already matched
+            if (matchedIds.Contains(itemIds[i]))
+                img.color = matchedBackgroundColor;
+            else
+                img.color = normalBackgroundColor;
 
             RectTransform rt = obj.GetComponent<RectTransform>();
             rt.localScale = Vector3.one;
@@ -122,6 +165,7 @@ public class FruitGameManager : MonoBehaviour
         }
     }
 
+    // ✅ Called when a match is found
     public void HandleCorrectMatch(Sprite matchedSprite, string itemId)
     {
         StartCoroutine(HandleCorrectMatchRoutine(matchedSprite, itemId));
@@ -129,7 +173,7 @@ public class FruitGameManager : MonoBehaviour
 
     private IEnumerator HandleCorrectMatchRoutine(Sprite matchedSprite, string itemId)
     {
-        // ✅ Update chillout slot with matched sprite
+        // Update chillout slot with matched sprite
         chilloutSlot.sprite = matchedSprite;
 
         // bounce animation
@@ -140,67 +184,115 @@ public class FruitGameManager : MonoBehaviour
                 LeanTween.scale(chilloutSlot.gameObject, Vector3.one, 0.2f).setEaseInBack();
             });
 
-           
-
-        // 🎇 Main effect
+        // effects
         if (matchEffectPrefab && effectSpawnPoint)
             Instantiate(matchEffectPrefab, effectSpawnPoint.position, Quaternion.identity);
 
-        // ⭐ NEW: Extra particle effect
         if (extraMatchEffectPrefab && extraEffectSpawnPoint)
             Instantiate(extraMatchEffectPrefab, extraEffectSpawnPoint.position, Quaternion.identity);
 
-        // 🔊 sound
         if (audioSource && matchSound)
             audioSource.PlayOneShot(matchSound);
 
-        // wait before showing panel
+        // delay
         yield return new WaitForSeconds(panelShowDelay);
 
-        // ✅ show match panel
+        // show panel
         matchedItemImage.sprite = matchedSprite;
         matchedItemIdText.text = itemId;
         matchInfoPanel.SetActive(true);
 
-       LeanTween.scale(matchedItemImage.gameObject, Vector3.one * 1.2f, 2f)
-    .setEaseOutBack();
+      // 🔥 spawn particle behind fruit image
+if (matchInfoParticlePrefab != null)
+{
+    // Remove old particle if exists
+    if (activeMatchParticle != null)
+        Destroy(activeMatchParticle);
 
-matchInfoPanel.transform.localRotation = Quaternion.identity;
-LeanTween.rotateZ(matchInfoPanel, 360f, 2f)
-    .setEase(LeanTweenType.linear)
-    .setLoopClamp();
+    // Instantiate as child of MatchInfoPanel
+    activeMatchParticle = Instantiate(matchInfoParticlePrefab, matchedItemImage.transform.parent);
 
-        // keep panel on screen
+    // Position it at the same place as the image
+    activeMatchParticle.transform.localPosition = matchedItemImage.rectTransform.localPosition;
+    activeMatchParticle.transform.localScale = Vector3.one * 10;
+
+    // Set sibling index to behind image
+    activeMatchParticle.transform.SetSiblingIndex(0);
+}
+
+
+       // IMAGE scale animation
+matchedItemImage.transform.localScale = Vector3.zero;
+LeanTween.scale(matchedItemImage.gameObject, Vector3.one * 1.2f, 0.6f).setEaseOutBack();
+
+// TEXT position + scale animation
+Vector3 originalPos = matchedItemIdText.rectTransform.localPosition;
+matchedItemIdText.rectTransform.localPosition = new Vector3(originalPos.x - 500f, originalPos.y, originalPos.z);
+
+LeanTween.moveLocalX(matchedItemIdText.gameObject, originalPos.x, 0.6f).setEaseOutBack();
+matchedItemIdText.transform.localScale = Vector3.zero;
+LeanTween.scale(matchedItemIdText.gameObject, Vector3.one, 0.6f).setEaseOutBack();
+
+
+        matchInfoPanel.transform.localRotation = Quaternion.identity;
+        LeanTween.rotateZ(matchInfoPanel, 360f, 2f)
+            .setEase(LeanTweenType.linear)
+            .setLoopClamp();
+
         yield return new WaitForSeconds(panelVisibleTime);
 
-LeanTween.cancel(matchInfoPanel);
-matchInfoPanel.transform.localRotation = Quaternion.identity;
-matchInfoPanel.SetActive(false);
-    
-
-        // ✅ hide panel
+        LeanTween.cancel(matchInfoPanel);
+        matchInfoPanel.transform.localRotation = Quaternion.identity;
         matchInfoPanel.SetActive(false);
 
-        // ✅ load next chillout sprite
-        LoadNextChillout();
+        // mark as matched (no destroy)
+        MarkAsMatched(itemId);
 
-        // ✅ now ease out → ease in
+        LoadNextChillout();
         EaseOutChillout();
     }
+
+    // ✅ called instead of destroying item
+    public void MarkAsMatched(string itemId)
+    {
+        if (!matchedIds.Contains(itemId))
+        {
+            matchedIds.Add(itemId);
+        }
+        UpdateMatchedBackgrounds();
+    }
+
+   private void UpdateMatchedBackgrounds()
+{
+    foreach (Transform child in contentPanel)
+    {
+        DraggableFruit drag = child.GetComponent<DraggableFruit>();
+        if (drag != null)
+        {
+            Image img = child.GetComponent<Image>(); // main Image component on the draggable prefab
+            if (img != null)
+            {
+                if (matchedIds.Contains(drag.itemId))
+                {
+                    // 🌟 Directly tint the image itself
+                    img.color = new Color(0.3255f, 0.3608f, 0.0941f, 1f); // #535C18
+                }
+                else
+                {
+                    // Reset to normal
+                    img.color = Color.white;
+                }
+            }
+        }
+    }
+}
+
 
     public void EaseOutChillout()
     {
         if (chilloutSlot != null)
         {
-            // fade out & hide
-            // LeanTween.scale(chilloutSlot.gameObject, Vector3.zero, 0.4f)
-            //     .setEaseInBack()
-            //     .setOnComplete(() =>
-            //     {
-            //         chilloutSlot.gameObject.SetActive(false);
-                   
-            //     });
-                 EaseInChillout();
+            EaseInChillout();
         }
     }
 
@@ -216,6 +308,10 @@ matchInfoPanel.SetActive(false);
         }
     }
 }
+
+
+
+
 
 
 
